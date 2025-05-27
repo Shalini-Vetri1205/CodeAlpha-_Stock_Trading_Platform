@@ -1,0 +1,116 @@
+import java.util.*;
+
+public class StockTradingPlatform {
+
+    static class User {
+        String username;
+        double balance;
+
+        public User(String username, double balance) {
+            this.username = username;
+            this.balance = balance;
+        }
+
+        public boolean withdraw(double amount) {
+            if (balance >= amount) {
+                balance -= amount;
+                return true;
+            }
+            return false;
+        }
+
+        public void deposit(double amount) {
+            balance += amount;
+        }
+    }
+
+    static class Stock {
+        String symbol;
+        double price;
+
+        public Stock(String symbol, double price) {
+            this.symbol = symbol;
+            this.price = price;
+        }
+    }
+
+    static class Portfolio {
+        Map<String, Integer> holdings = new HashMap<>();
+
+        public void buy(String symbol, int qty) {
+            holdings.put(symbol, holdings.getOrDefault(symbol, 0) + qty);
+        }
+
+        public boolean sell(String symbol, int qty) {
+            int currentQty = holdings.getOrDefault(symbol, 0);
+            if (currentQty >= qty) {
+                holdings.put(symbol, currentQty - qty);
+                return true;
+            }
+            return false;
+        }
+
+        public void show() {
+            System.out.println("Portfolio:");
+            for (String symbol : holdings.keySet()) {
+                System.out.println(symbol + " - " + holdings.get(symbol) + " shares");
+            }
+        }
+    }
+
+    static Stock getStock(String symbol) {
+        double price = 50 + Math.random() * 150; // mock stock price between 50-200
+        return new Stock(symbol.toUpperCase(), price);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        User user = new User("john_doe", 1000.0);
+        Portfolio portfolio = new Portfolio();
+
+        while (true) {
+            System.out.println("\nWelcome " + user.username + " | Balance: $" + String.format("%.2f", user.balance));
+            System.out.println("1. Buy Stock\n2. Sell Stock\n3. View Portfolio\n4. Exit");
+            System.out.print("Choose option: ");
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            if (choice == 4) break;
+
+            System.out.print("Enter stock symbol: ");
+            String symbol = sc.nextLine();
+            System.out.print("Enter quantity: ");
+            int qty = sc.nextInt();
+            sc.nextLine();
+
+            Stock stock = getStock(symbol);
+            double total = stock.price * qty;
+
+            switch (choice) {
+                case 1 -> {
+                    if (user.withdraw(total)) {
+                        portfolio.buy(stock.symbol, qty);
+                        System.out.printf("Bought %d of %s at $%.2f each. Total: $%.2f\n", qty, stock.symbol, stock.price, total);
+                    } else {
+                        System.out.println("Insufficient balance.");
+                    }
+                }
+                case 2 -> {
+                    if (portfolio.sell(stock.symbol, qty)) {
+                        user.deposit(total);
+                        System.out.printf("Sold %d of %s at $%.2f each. Total: $%.2f\n", qty, stock.symbol, stock.price, total);
+                    } else {
+                        System.out.println("Not enough shares.");
+                    }
+                }
+                case 3 -> {
+                    portfolio.show();
+                }
+                default -> System.out.println("Invalid option.");
+            }
+        }
+
+        sc.close();
+        System.out.println("Thank you for using the Stock Trading Platform!");
+    }
+}
